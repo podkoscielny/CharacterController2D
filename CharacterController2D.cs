@@ -122,9 +122,11 @@ namespace AoOkami.CharacterController
             }
         }
 
-        void OnCollisionStay2D(Collision2D collision)
+        private bool CanCheckBeingGrounded() => !IsGrounded && characterRb.velocity.y <= 0.001f;
+
+        private void OnCollisionStay2D(Collision2D collision)
         {
-            if (!IsGrounded && IsObjectsMaskSameAsGrounds(collision.gameObject) && IsGroundBeneath() && collision.enabled)
+            if (CanCheckBeingGrounded() && IsObjectsMaskSameAsGrounds(collision.gameObject) && IsGroundBeneath() && collision.enabled)
             {
                 IsGrounded = true;
                 _jumpsCount = 0;
@@ -132,7 +134,7 @@ namespace AoOkami.CharacterController
             }
         }
 
-        void OnCollisionExit2D(Collision2D collision)
+        private void OnCollisionExit2D(Collision2D collision)
         {
             if (IsGrounded && IsObjectsMaskSameAsGrounds(collision.gameObject) && !IsGroundBeneath())
             {
