@@ -1,9 +1,16 @@
+using System;
 using UnityEngine;
 
-namespace AoOkami.CharacterController2D
+namespace AoOkami.CharacterController
 {
     public class CharacterController2D : MonoBehaviour
     {
+        public static event Action OnLanded;
+        public static event Action OnFalling;
+        public static event Action OnJump;
+        public static event Action OnDoubleJump;
+        public static event Action<bool> OnCrouch;
+
         [Header("Movement")]
         [Range(0, 1)] [SerializeField] float crouchSpeed = .36f;
         [SerializeField] float jumpForce = 12f;
@@ -19,9 +26,6 @@ namespace AoOkami.CharacterController2D
         [Header("Rigidbody")]
         [SerializeField] Rigidbody2D characterRb;
 
-        [Header("Animation")]
-        [SerializeField] AnimationController animationController;
-
         public bool IsGrounded { get; private set; }
 
         private bool _facingRight = true;
@@ -35,6 +39,8 @@ namespace AoOkami.CharacterController2D
 
         private void OnDrawGizmos()
         {
+            if (groundCheck == null) return;
+
             Gizmos.DrawWireCube(groundCheck.position, groundCheckSize);
         }
 
@@ -68,7 +74,7 @@ namespace AoOkami.CharacterController2D
             {
                 _movementMultiplier = crouchSpeed;
                 _isCrouching = true;
-                animationController.OnCrouching(true);
+                OnCrouch?.Invoke(true);
             }
             else
             {
@@ -81,13 +87,13 @@ namespace AoOkami.CharacterController2D
             if (IsGrounded && !_isCrouching)
             {
                 IsGrounded = false;
-                animationController.OnJumping();
+                OnJump?.Invoke();
                 characterRb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
                 _jumpsCount++;
             }
             else if (!IsGrounded && canDoubleJump && _jumpsCount < 2)
             {
-                animationController.OnDoubleJump();
+                OnDoubleJump?.Invoke();
                 characterRb.velocity = new Vector2(characterRb.velocity.x, 0);
                 characterRb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
                 _jumpsCount++;
@@ -107,11 +113,12 @@ namespace AoOkami.CharacterController2D
         private void CeilingCheck()
         {
             _isCrouching = Physics2D.OverlapCircle(ceilingCheck.position, CEILING_RADIUS, groundMask) != null;
+
             if (!_isCrouching)
             {
                 _movementMultiplier = 1f;
                 _isCheckingCeiling = false;
-                animationController.OnCrouching(false);
+                OnCrouch?.Invoke(false);
             }
         }
 
@@ -121,7 +128,7 @@ namespace AoOkami.CharacterController2D
             {
                 IsGrounded = true;
                 _jumpsCount = 0;
-                animationController.OnLanding();
+                OnLanded?.Invoke();
             }
         }
 
@@ -130,7 +137,7 @@ namespace AoOkami.CharacterController2D
             if (IsGrounded && IsObjectsMaskSameAsGrounds(collision.gameObject) && !IsGroundBeneath())
             {
                 IsGrounded = false;
-                animationController.OnFalling();
+                OnFalling?.Invoke();
             }
         }
     }
