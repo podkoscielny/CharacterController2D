@@ -16,6 +16,7 @@ namespace AoOkami.CharacterController
         [SerializeField] float jumpForce = 12f;
         [SerializeField] bool airControl = false;
         [SerializeField] bool canDoubleJump = false;
+        [SerializeField] bool canJumpOnFall = false;
 
         [Header("Collision")]
         [SerializeField] LayerMask groundMask;
@@ -81,11 +82,15 @@ namespace AoOkami.CharacterController
 
         public void Jump()
         {
-            if (IsGrounded && !_isCrouching)
+            if ((IsGrounded && !_isCrouching) || (!IsGrounded && canJumpOnFall && _jumpsCount == 0))
             {
                 IsGrounded = false;
                 OnJump?.Invoke();
+
+                Vector2 resetVelocity = new Vector2(characterRb.velocity.x, 0);
+                characterRb.velocity = resetVelocity;
                 characterRb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+
                 _jumpsCount++;
             }
             else if (!IsGrounded && canDoubleJump && _jumpsCount < 2)
