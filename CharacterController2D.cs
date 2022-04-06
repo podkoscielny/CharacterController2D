@@ -33,7 +33,6 @@ namespace AoOkami.CharacterController
         private bool _isFacingRight = true;
         private bool _isCrouching = false;
         private bool _isCheckingCeiling = false;
-        private bool _canResetVelocity = true;
         private float _movementMultiplier = 1f;
         private int _jumpsCount = 0;
 
@@ -44,29 +43,19 @@ namespace AoOkami.CharacterController
             if (ceilingCheck != null) Gizmos.DrawWireCube(ceilingCheck.position, ceilingCheckSize);
         }
 
-        private void Start() => _isFacingRight = transform.right == Vector3.right;
+        private void Start() => SetCharacterFacing();
 
         public void Move(float moveAmount)
         {
-            if ((IsGrounded || airControl) && moveAmount != 0)
-            {
-                if (_isCheckingCeiling) CeilingCheck(); //check if the player can stand up after releasing crouch key
+            if (_isCheckingCeiling) CeilingCheck(); //check if the player can stand up after releasing crouch key
 
+            if (IsGrounded || airControl)
+            {
                 moveAmount *= _movementMultiplier;
                 characterRb.velocity = new Vector2(moveAmount, characterRb.velocity.y);
 
                 if (moveAmount > 0 && !_isFacingRight || moveAmount < 0 && _isFacingRight)
                     FlipCharacter();
-
-                _canResetVelocity = true;
-            }
-            else
-            {
-                if (_canResetVelocity)
-                {
-                    characterRb.velocity = new Vector2(0, characterRb.velocity.y);
-                    _canResetVelocity = false;
-                }
             }
         }
 
@@ -87,21 +76,24 @@ namespace AoOkami.CharacterController
             if ((IsGrounded && !_isCrouching) || (!IsGrounded && canJumpOnFall && _jumpsCount == 0))
             {
                 IsGrounded = false;
+                _jumpsCount++;
+                SetJumpForce();
                 OnJump?.Invoke();
 
-                Vector2 resetVelocity = new Vector2(characterRb.velocity.x, 0);
-                characterRb.velocity = resetVelocity;
-                characterRb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-
-                _jumpsCount++;
             }
             else if (!IsGrounded && canDoubleJump && _jumpsCount < 2)
             {
-                OnDoubleJump?.Invoke();
-                characterRb.velocity = new Vector2(characterRb.velocity.x, 0);
-                characterRb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
                 _jumpsCount++;
+                SetJumpForce();
+                OnDoubleJump?.Invoke();
             }
+        }
+
+        private void SetJumpForce()
+        {
+            Vector2 resetVelocity = new Vector2(characterRb.velocity.x, 0);
+            characterRb.velocity = resetVelocity;
+            characterRb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
 
         private void FlipCharacter()
@@ -109,6 +101,8 @@ namespace AoOkami.CharacterController
             _isFacingRight = !_isFacingRight;
             transform.Rotate(0f, 180f, 0f);
         }
+
+        private void SetCharacterFacing() => _isFacingRight = transform.right == Vector3.right;
 
         private bool IsObjectsMaskSameAsGrounds(GameObject obj) => (groundMask.value & (1 << obj.layer)) > 0;
 
@@ -143,6 +137,8 @@ namespace AoOkami.CharacterController
             if (IsGrounded && IsObjectsMaskSameAsGrounds(collision.gameObject) && !IsGroundBeneath())
             {
                 IsGrounded = false;
+                _isCrouching = false;
+                _movementMultiplier = 1f;
                 OnFalling?.Invoke();
             }
         }
