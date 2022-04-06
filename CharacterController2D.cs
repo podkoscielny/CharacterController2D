@@ -30,7 +30,7 @@ namespace AoOkami.CharacterController
 
         public bool IsGrounded { get; private set; }
 
-        private bool _facingRight = true;
+        private bool _isFacingRight = true;
         private bool _isCrouching = false;
         private bool _isCheckingCeiling = false;
         private bool _canResetVelocity = true;
@@ -44,6 +44,8 @@ namespace AoOkami.CharacterController
             if (ceilingCheck != null) Gizmos.DrawWireCube(ceilingCheck.position, ceilingCheckSize);
         }
 
+        private void Start() => _isFacingRight = transform.right == Vector3.right;
+
         public void Move(float moveAmount)
         {
             if ((IsGrounded || airControl) && moveAmount != 0)
@@ -53,7 +55,7 @@ namespace AoOkami.CharacterController
                 moveAmount *= _movementMultiplier;
                 characterRb.velocity = new Vector2(moveAmount, characterRb.velocity.y);
 
-                if (moveAmount > 0 && !_facingRight || moveAmount < 0 && _facingRight)
+                if (moveAmount > 0 && !_isFacingRight || moveAmount < 0 && _isFacingRight)
                     FlipCharacter();
 
                 _canResetVelocity = true;
@@ -104,7 +106,7 @@ namespace AoOkami.CharacterController
 
         private void FlipCharacter()
         {
-            _facingRight = !_facingRight;
+            _isFacingRight = !_isFacingRight;
             transform.Rotate(0f, 180f, 0f);
         }
 
