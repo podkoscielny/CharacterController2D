@@ -22,6 +22,7 @@ namespace AoOkami.CharacterController
         [SerializeField] Transform groundCheck;
         [SerializeField] Transform ceilingCheck;
         [SerializeField] Vector2 groundCheckSize = new Vector2(0.32f, 0.03f);
+        [SerializeField] Vector2 ceilingCheckSize = new Vector2(0.32f, 0.03f);
 
         [Header("Rigidbody")]
         [SerializeField] Rigidbody2D characterRb;
@@ -35,13 +36,11 @@ namespace AoOkami.CharacterController
         private float _movementMultiplier = 1f;
         private int _jumpsCount = 0;
 
-        private const float CEILING_RADIUS = .2f;
-
         private void OnDrawGizmos()
         {
-            if (groundCheck == null) return;
+            if (groundCheck != null) Gizmos.DrawWireCube(groundCheck.position, groundCheckSize);
 
-            Gizmos.DrawWireCube(groundCheck.position, groundCheckSize);
+            if (ceilingCheck != null) Gizmos.DrawWireCube(ceilingCheck.position, ceilingCheckSize);
         }
 
         public void Move(float moveAmount)
@@ -77,9 +76,7 @@ namespace AoOkami.CharacterController
                 OnCrouch?.Invoke(true);
             }
             else
-            {
                 _isCheckingCeiling = true;
-            }
         }
 
         public void Jump()
@@ -112,7 +109,7 @@ namespace AoOkami.CharacterController
 
         private void CeilingCheck()
         {
-            _isCrouching = Physics2D.OverlapCircle(ceilingCheck.position, CEILING_RADIUS, groundMask) != null;
+            _isCrouching = Physics2D.OverlapBox(ceilingCheck.position, ceilingCheckSize, 0, groundMask) != null;
 
             if (!_isCrouching)
             {
