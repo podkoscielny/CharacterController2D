@@ -81,7 +81,7 @@ namespace AoOkami.CharacterController
                 OnJump?.Invoke();
 
             }
-            else if (!IsGrounded && canDoubleJump && _jumpsCount < 2)
+            else if (!IsGrounded && canDoubleJump && _jumpsCount > 0 && _jumpsCount < 2)
             {
                 _jumpsCount++;
                 SetJumpForce();
