@@ -61,7 +61,7 @@ Physics based controller for Unity 2D platformer games.
 Make sure to include `using AoOkami.CharacterController;` in your movement script.
 
 ### Move
-Move() function takes float value as an argument, which stands for amount it should move the character by in horizontal direction.
+**Move(float moveAmount)** function takes float value as an argument, which stands for amount it should move the character by in horizontal direction.
 Negative value moves the object to the left, while positive to the right.
 As CharacterController2D is physics based controller you should invoke this function in FixedUpdate.
 <br />
@@ -75,7 +75,7 @@ private void FixedUpdate() => characterController.Move(_horizontalMovement);
 ```
 
 ### Jump
-Jump() function adds impulse force to the rigidbody. Force amount is specified in Jump Force field.
+**Jump()** function adds impulse force to the rigidbody. Force amount is specified in Jump Force field.
 Since ForceMode is Impulse there is no need to invoke this method in FixedUpdate.
 
 ```csharp
@@ -90,7 +90,7 @@ private void Update()
 ```
 
 ### Crouch
-Crouch() method takes isCrouching bool argument. When **true** is passed, character's speed is slowed down by factor specified in Crouch Speed field. 
+**Crouch(bool isCrouching)** method takes isCrouching bool argument. When **true** is passed, character's speed is slowed down by factor specified in Crouch Speed field. 
 While crouching, jumping is not possible. 
 When **false** is passed, character's speed returns to normal, unless ceiling is low enough, so that character cannnot stand up. 
 In that case crouching will be released, when there is no ceiling above.
